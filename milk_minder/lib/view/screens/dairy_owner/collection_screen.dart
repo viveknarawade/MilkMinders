@@ -2,8 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:milk_minder/view/screens/dairy_owner/add_collection_screen.dart';
 
-class CollectionsScreen extends StatelessWidget {
-  const CollectionsScreen({super.key});
+class CollectionsScreen extends StatefulWidget {
+  CollectionsScreen({super.key});
+
+  @override
+  _CollectionsScreenState createState() => _CollectionsScreenState();
+}
+
+class _CollectionsScreenState extends State<CollectionsScreen> {
+  bool isMorningSelected = false;
+  bool isEveningSelected = false;
+  bool isCowSelected = false;
+  bool isBuffaloSelected = false;
 
   @override
   Widget build(BuildContext context) {
@@ -22,24 +32,6 @@ class CollectionsScreen extends StatelessWidget {
             fontWeight: FontWeight.w500,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add, color: Colors.white),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) {
-                    return AddCollectionScreen();
-                  },
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -78,9 +70,12 @@ class CollectionsScreen extends StatelessWidget {
                       child: _buildFilterChip(
                         icon: '☀️',
                         label: 'Morning',
-                        isSelected: true,
+                        isSelected: isMorningSelected,
                         onTap: () {
-                         
+                          setState(() {
+                            isMorningSelected = !isMorningSelected;
+                            isEveningSelected = false;
+                          });
                         },
                       ),
                     ),
@@ -89,8 +84,13 @@ class CollectionsScreen extends StatelessWidget {
                       child: _buildFilterChip(
                         icon: '🌙',
                         label: 'Evening',
-                        isSelected: false,
-                        onTap: () {},
+                        isSelected: isEveningSelected,
+                        onTap: () {
+                          setState(() {
+                            isEveningSelected = !isEveningSelected;
+                            isMorningSelected = false;
+                          });
+                        },
                       ),
                     ),
                   ],
@@ -102,8 +102,13 @@ class CollectionsScreen extends StatelessWidget {
                       child: _buildFilterChip(
                         icon: '🐄',
                         label: 'Cow',
-                        isSelected: false,
-                        onTap: () {},
+                        isSelected: isCowSelected,
+                        onTap: () {
+                          setState(() {
+                            isCowSelected = !isCowSelected;
+                            isBuffaloSelected = false;
+                          });
+                        },
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -111,8 +116,13 @@ class CollectionsScreen extends StatelessWidget {
                       child: _buildFilterChip(
                         icon: '🐃',
                         label: 'Buffalo',
-                        isSelected: false,
-                        onTap: () {},
+                        isSelected: isBuffaloSelected,
+                        onTap: () {
+                          setState(() {
+                            isBuffaloSelected = !isBuffaloSelected;
+                            isCowSelected = false;
+                          });
+                        },
                       ),
                     ),
                   ],
@@ -133,14 +143,33 @@ class CollectionsScreen extends StatelessWidget {
           ),
         ],
       ),
+      floatingActionButton: Align(
+        alignment: Alignment.bottomCenter,
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) {
+                  return AddCollectionScreen();
+                },
+              ),
+            );
+          },
+          child: const Icon(
+            Icons.add,
+            color: Colors.white,
+          ),
+        ),
+      ),
     );
   }
 
-  Widget _buildFilterChip(
-      {required String icon,
-      required String label,
-      required bool isSelected,
-      required VoidCallback onTap}) {
+  Widget _buildFilterChip({
+    required String icon,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(

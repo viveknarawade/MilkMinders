@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:milk_minder/view/widget/custom_searchbar.dart';
-import 'package:milk_minder/view/widget/custom_sizedbox.dart';
 
 class AddCollectionScreen extends StatefulWidget {
   const AddCollectionScreen({super.key});
@@ -11,6 +10,11 @@ class AddCollectionScreen extends StatefulWidget {
 }
 
 class _AddCollectionScreenState extends State<AddCollectionScreen> {
+  bool isMorningSelected = false;
+  bool isEveningSelected = false;
+  bool isCowSelected = false;
+  bool isBuffaloSelected = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,16 +32,6 @@ class _AddCollectionScreenState extends State<AddCollectionScreen> {
             fontWeight: FontWeight.w500,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add, color: Colors.white),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -76,7 +70,13 @@ class _AddCollectionScreenState extends State<AddCollectionScreen> {
                       child: _buildFilterChip(
                         icon: '☀️',
                         label: 'Morning',
-                        isSelected: true,
+                        isSelected: isMorningSelected,
+                        onTap: () {
+                          setState(() {
+                            isMorningSelected = true;
+                            isEveningSelected = false;
+                          });
+                        },
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -84,57 +84,70 @@ class _AddCollectionScreenState extends State<AddCollectionScreen> {
                       child: _buildFilterChip(
                         icon: '🌙',
                         label: 'Evening',
-                        isSelected: false,
+                        isSelected: isEveningSelected,
+                        onTap: () {
+                          setState(() {
+                            isEveningSelected = true;
+                            isMorningSelected = false;
+                          });
+                        },
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                CustomSearchbar.showCustomSearchbar("Farmer Code")
               ],
             ),
           ),
-          // Expanded(
-          //   child: Center(
-          //     child: Text(
-          //       'No records',
-          //       style: GoogleFonts.poppins(
-          //         fontSize: 16,
-          //         color: Colors.grey[600],
-          //       ),
-          //     ),
-          //   ),
-          // ),
 
-          CustomSizedBox.heigthSizedBox(20),
+          //Search bar
+          Padding(
+            padding: EdgeInsets.all(20),
+            child: CustomSearchbar.showCustomSearchbar("Search"),
+          ),
+          const SizedBox(height: 20),
+         
+         // cow and buffalo button
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Text("Milk type"),
-              CustomSizedBox.widthSizedBox(10),
+              const Text("Milk type"),
+              const SizedBox(width: 10),
               _buildFilterChip(
                 icon: '🐄',
                 label: 'Cow',
-                isSelected: false,
+                isSelected: isCowSelected,
+                onTap: () {
+                  setState(() {
+                    isCowSelected = true;
+                    isBuffaloSelected = false;
+                  });
+                },
               ),
-              CustomSizedBox.widthSizedBox(10),
+              const SizedBox(width: 10),
               _buildFilterChip(
                 icon: '🐃',
                 label: 'Buffalo',
-                isSelected: false,
+                isSelected: isBuffaloSelected,
+                onTap: () {
+                  setState(() {
+                    isBuffaloSelected = true;
+                    isCowSelected = false;
+                  });
+                },
               ),
             ],
           ),
           const Divider(height: 1),
+        
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
+            children: const [
               Text("Liter"),
               Divider(height: 1),
               Text("Rate"),
             ],
           ),
-          Spacer(),
+          const Spacer(),
           _buildBottomButtons(),
         ],
       ),
@@ -145,32 +158,36 @@ class _AddCollectionScreenState extends State<AddCollectionScreen> {
     required String icon,
     required String label,
     required bool isSelected,
+    required VoidCallback onTap,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        color: isSelected
-            ? const Color(0xFF40A98D).withOpacity(0.1)
-            : Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isSelected ? const Color(0xFF40A98D) : Colors.grey[300]!,
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(icon, style: const TextStyle(fontSize: 16)),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: isSelected ? const Color(0xFF40A98D) : Colors.grey[600],
-            ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color(0xFF40A98D).withOpacity(0.1)
+              : Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF40A98D) : Colors.grey[300]!,
           ),
-        ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(icon, style: const TextStyle(fontSize: 16)),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: isSelected ? const Color(0xFF40A98D) : Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

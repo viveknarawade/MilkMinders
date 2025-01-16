@@ -1,9 +1,12 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:milk_minder/view/screens/dairy_owner/add_farmer_screen.dart';
 import 'package:milk_minder/view/screens/dairy_owner/all_farmer_report_screen.dart';
 import 'package:milk_minder/view/widget/custom_searchbar.dart';
 import 'package:milk_minder/view/widget/custom_sizedbox.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class FarmerScreen extends StatefulWidget {
   const FarmerScreen({super.key});
@@ -147,17 +150,31 @@ class _FarmerScreenState extends State<FarmerScreen> {
           color: Colors.grey,
         ),
       ),
-      trailing: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: const Color(0xFF6B4CE6).withOpacity(0.1),
-        ),
-        child: const Icon(
-          Icons.phone,
-          color: Color(0xFF6B4CE6),
-          size: 20,
+      trailing: GestureDetector(
+        onTap: () async {
+          final Uri url = Uri(
+            scheme: "tel",
+            path: "+1234567890",
+          );
+
+          try {
+            await launchUrl(url, mode: LaunchMode.externalApplication);
+          } catch (e) {
+            log("Failed to launch the dialer: $e");
+          }
+        },
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: const Color(0xFF6B4CE6).withOpacity(0.1),
+          ),
+          child: const Icon(
+            Icons.phone,
+            color: Color(0xFF6B4CE6),
+            size: 20,
+          ),
         ),
       ),
     );
