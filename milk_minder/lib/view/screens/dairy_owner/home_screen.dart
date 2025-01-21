@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:milk_minder/services/dairy_owner_session_data.dart';
+import 'package:milk_minder/services/firestore_service.dart';
 import 'package:milk_minder/view/screens/dairy_owner/analytics_screen.dart';
 import 'package:milk_minder/view/screens/dairy_owner/collection_screen.dart';
 import 'package:milk_minder/view/screens/dairy_owner/farmer_screen.dart';
 import 'package:milk_minder/view/screens/dairy_owner/profile_screen.dart';
 import 'package:milk_minder/view/screens/dairy_owner/rate_screen.dart';
+import 'package:provider/provider.dart';
 
+import '../../../controller/milk_collection_provider.dart';
 import '../../widget/custom_sizedbox.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -24,16 +28,24 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _pages = [
-      home(context),
+      HomePage(),
       const AnalyticsScreen(),
-      const ProfileScreen(),
+      DairyOwnerProfilePage(),
     ];
+    initial();
+  }
+
+  initial() async {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<MilkCollectionProvider>().fetchMilkCollectionData();
+    });
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(124, 180, 70, 1),
+      backgroundColor: const Color(0xFF40A98D),
       body: _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.white,
@@ -62,129 +74,131 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-Widget home(BuildContext context) {
-  return CustomScrollView(
-    slivers: [
-      SliverAppBar(
-        expandedHeight: 170,
-        pinned: true,
-        backgroundColor: const Color.fromRGBO(124, 180, 70, 1),
-        flexibleSpace: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            return FlexibleSpaceBar(
-              centerTitle: false,
-              titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topRight,
-                    end: Alignment.bottomLeft,
-                    colors: [
-                      const Color.fromRGBO(124, 180, 70, 1),
-                      const Color.fromRGBO(124, 180, 70, 1).withOpacity(0.85),
-                      const Color.fromRGBO(124, 180, 70, 1).withOpacity(0.95),
-                    ],
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  bool isCowSelected = true;
+  bool isBuffaloSelected = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomScrollView(
+      slivers: [
+        SliverAppBar(
+          expandedHeight: 170,
+          pinned: true,
+          backgroundColor: const Color.fromRGBO(124, 180, 70, 1),
+          flexibleSpace: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              return FlexibleSpaceBar(
+                centerTitle: false,
+                titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
+                background: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF40A98D),
                   ),
-                ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      right: -50,
-                      top: -50,
-                      child: Container(
-                        width: 200,
-                        height: 200,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(0.1),
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        right: -50,
+                        top: -50,
+                        child: Container(
+                          width: 200,
+                          height: 200,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withOpacity(0.1),
+                          ),
                         ),
                       ),
-                    ),
-                    SafeArea(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 24),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Hello,',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 19,
-                                    color: Colors.white.withOpacity(0.9),
-                                    height: 1.2,
-                                  ),
-                                ),
-                                const SizedBox(height: 5),
-                                Text(
-                                  'Vivek',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 30,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    height: 1.2,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    'Good Morning! 🌞',
+                      SafeArea(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 24),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Hello,',
                                     style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      color: Colors.white,
+                                      fontSize: 19,
+                                      color: Colors.white.withOpacity(0.9),
                                       height: 1.2,
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
+                                  const SizedBox(height: 5),
+                                  Text(
+                                    '${DairyOwnerSessionData.ownerName}',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 30,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      height: 1.2,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      'Good Morning! 🌞',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14,
+                                        color: Colors.white,
+                                        height: 1.2,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(0.0),
+            child: Container(
+              height: 30.0,
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(45),
+                  topRight: Radius.circular(45),
                 ),
               ),
-            );
-          },
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(0.0),
-          child: Container(
-            height: 30.0,
-            alignment: Alignment.center,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(45),
-                topRight: Radius.circular(45),
+              child: SizedBox(
+                height: 20,
               ),
-            ),
-            child: SizedBox(
-              height: 20,
             ),
           ),
         ),
-      ),
-      SliverToBoxAdapter(
-        child: Expanded(
-          child: Container(
-            color: Colors.white,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 25.0),
-              child: Column(
+        SliverToBoxAdapter(
+          child: Expanded(
+            child: Container(
+              color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 24),
@@ -195,16 +209,106 @@ Widget home(BuildContext context) {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         CustomSizedBox.widthSizedBox(10),
-                        _buildFilterChip(
-                          icon: '🐄',
-                          label: 'Cow',
-                          isSelected: false,
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              isCowSelected = true;
+                              isBuffaloSelected = false;
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12, horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: isCowSelected
+                                  ? const Color(0xFF40A98D).withOpacity(0.1)
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isCowSelected
+                                    ? const Color(0xFF40A98D)
+                                    : Colors.grey[300]!,
+                                width: 1.5,
+                              ),
+                              boxShadow: [
+                                if (!isCowSelected)
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.02),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text('🐄',
+                                    style: const TextStyle(fontSize: 18)),
+                                const SizedBox(width: 8),
+                                Text(
+                                  "Cow",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: isCowSelected
+                                        ? const Color(0xFF40A98D)
+                                        : Colors.grey[700],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                         CustomSizedBox.widthSizedBox(10),
-                        _buildFilterChip(
-                          icon: '🐃',
-                          label: 'Buffalo',
-                          isSelected: false,
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              isBuffaloSelected = true;
+                              isCowSelected = false;
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12, horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: isBuffaloSelected
+                                  ? const Color(0xFF40A98D).withOpacity(0.1)
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isBuffaloSelected
+                                    ? const Color(0xFF40A98D)
+                                    : Colors.grey[300]!,
+                                width: 1.5,
+                              ),
+                              boxShadow: [
+                                if (!isBuffaloSelected)
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.02),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text("🐃",
+                                    style: const TextStyle(fontSize: 18)),
+                                const SizedBox(width: 8),
+                                Text(
+                                  "Buffalo",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: isBuffaloSelected
+                                        ? const Color(0xFF40A98D)
+                                        : Colors.grey[700],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -227,33 +331,28 @@ Widget home(BuildContext context) {
                         children: [
                           Padding(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
+                                horizontal: 16, vertical: 12),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text('Shift',
                                     style: GoogleFonts.poppins(
-                                      fontWeight: FontWeight.w600,
-                                    )),
+                                        fontWeight: FontWeight.w600)),
                                 Text('Liters',
                                     style: GoogleFonts.poppins(
-                                      fontWeight: FontWeight.w600,
-                                    )),
+                                        fontWeight: FontWeight.w600)),
                                 Text('Rate',
                                     style: GoogleFonts.poppins(
-                                      fontWeight: FontWeight.w600,
-                                    )),
+                                        fontWeight: FontWeight.w600)),
                                 Text('Amount',
                                     style: GoogleFonts.poppins(
-                                      fontWeight: FontWeight.w600,
-                                    )),
+                                        fontWeight: FontWeight.w600)),
                               ],
                             ),
                           ),
                           const Divider(height: 1),
-                          _buildTodayCollectionListView(),
+                          _buildTodayCollectionListView(
+                              isCowSelected, isBuffaloSelected)
                         ],
                       ),
                     ),
@@ -273,7 +372,7 @@ Widget home(BuildContext context) {
                         children: [
                           _buildMenuCard(
                             'Collection',
-                            const Color.fromRGBO(124, 180, 70, 1),
+                            const Color(0xFF40A98D),
                             Icons.local_shipping,
                             context,
                             () {
@@ -286,28 +385,26 @@ Widget home(BuildContext context) {
                           ),
                           _buildMenuCard(
                             'Farmer',
-                            const Color.fromRGBO(124, 180, 70, 1),
+                            const Color(0xFF40A98D),
                             Icons.people_rounded,
                             context,
                             () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (context) => const FarmerScreen(),
+                                  builder: (context) => FarmerScreen(),
                                 ),
                               );
                             },
                           ),
                           _buildMenuCard(
                             'Rate',
-                            const Color.fromRGBO(124, 180, 70, 1),
+                            const Color(0xFF40A98D),
                             Icons.price_change_rounded,
                             context,
                             () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (context) {
-                                    return RateScreen();
-                                  },
+                                  builder: (context) => RateScreen(),
                                 ),
                               );
                             },
@@ -317,12 +414,110 @@ Widget home(BuildContext context) {
                       ),
                     ),
                     const SizedBox(height: 24),
-                  ]),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
-      )
-    ],
+      ],
+    );
+  }
+}
+
+Widget _buildTodayCollectionListView(
+    bool isCowSelected, bool isBuffaloSelected) {
+  return Consumer<MilkCollectionProvider>(
+    builder: (context, provider, child) {
+      // Check if provider is loading
+      if (provider.isLoading) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      }
+
+      // Filter for today's data based on selected milk types
+      final todayData = provider.collectionList.where((collection) {
+        // First filter by milk type
+        if (isCowSelected && collection['milkType'] != 'Cow') return false;
+        if (isBuffaloSelected && collection['milkType'] != 'Buffalo')
+          return false;
+        return true;
+      }).toList();
+
+      // Group by delivery time (Morning/Evening)
+      Map<String, Map<String, double>> summarizedData = {
+        'Morning': {'liters': 0.0, 'amount': 0.0},
+        'Evening': {'liters': 0.0, 'amount': 0.0},
+      };
+
+      for (var collection in todayData) {
+        String shift = collection['deliveryTime'] as String;
+        double liters = double.tryParse(collection['liters'].toString()) ?? 0.0;
+        double rate = double.tryParse(collection['rate'].toString()) ?? 0.0;
+
+        if (summarizedData.containsKey(shift)) {
+          summarizedData[shift]!['liters'] =
+              (summarizedData[shift]!['liters'] ?? 0) + liters;
+          summarizedData[shift]!['amount'] =
+              (summarizedData[shift]!['amount'] ?? 0) + (liters * rate);
+        }
+      }
+
+      if (todayData.isEmpty) {
+        return const Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Center(
+            child: Text('No collections for today'),
+          ),
+        );
+      }
+
+      return ListView.separated(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: summarizedData.length,
+        separatorBuilder: (context, index) => const Divider(height: 1),
+        itemBuilder: (context, index) {
+          String shift = summarizedData.keys.elementAt(index);
+          var data = summarizedData[shift]!;
+          double liters = data['liters'] ?? 0;
+          double amount = data['amount'] ?? 0;
+          double rate = liters > 0 ? amount / liters : 0;
+
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  shift,
+                  style: GoogleFonts.poppins(color: Colors.black87),
+                ),
+                Text(
+                  '${liters.toStringAsFixed(1)} L',
+                  style: GoogleFonts.poppins(
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  '₹${rate.toStringAsFixed(0)}',
+                  style: GoogleFonts.poppins(color: Colors.black87),
+                ),
+                Text(
+                  '₹${amount.toStringAsFixed(0)}',
+                  style: GoogleFonts.poppins(
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    },
   );
 }
 
@@ -337,7 +532,7 @@ Widget _buildSectionHeader(String title, IconData icon) {
       children: [
         Icon(
           icon,
-          color: const Color.fromRGBO(124, 180, 70, 1),
+          color: const Color(0xFF40A98D),
           size: 24,
         ),
         const SizedBox(width: 12),
@@ -346,90 +541,7 @@ Widget _buildSectionHeader(String title, IconData icon) {
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: const Color.fromRGBO(124, 180, 70, 1),
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-Widget _buildTodayCollectionListView() {
-  return ListView.separated(
-    shrinkWrap: true,
-    physics: const NeverScrollableScrollPhysics(),
-    itemCount: 2,
-    separatorBuilder: (context, index) => const Divider(height: 1),
-    itemBuilder: (context, index) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              "morning",
-              style: GoogleFonts.poppins(color: Colors.black87),
-            ),
-            Text(
-              "88.0",
-              style: GoogleFonts.poppins(
-                color: Colors.black87,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            Text(
-              "50",
-              style: GoogleFonts.poppins(color: Colors.black87),
-            ),
-            Text(
-              "44230",
-              style: GoogleFonts.poppins(
-                color: Colors.black87,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      );
-    },
-  );
-}
-
-Widget _buildFilterChip({
-  required String icon,
-  required String label,
-  required bool isSelected,
-}) {
-  return Container(
-    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-    decoration: BoxDecoration(
-      color:
-          isSelected ? const Color(0xFF40A98D).withOpacity(0.1) : Colors.white,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(
-        color: isSelected ? const Color(0xFF40A98D) : Colors.grey[300]!,
-        width: 1.5,
-      ),
-      boxShadow: [
-        if (!isSelected)
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-      ],
-    ),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(icon, style: const TextStyle(fontSize: 18)),
-        const SizedBox(width: 8),
-        Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: isSelected ? const Color(0xFF40A98D) : Colors.grey[700],
+            color: const Color(0xFF40A98D),
           ),
         ),
       ],

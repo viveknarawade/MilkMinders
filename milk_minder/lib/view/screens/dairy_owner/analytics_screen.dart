@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
+import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../../../controller/analytics_provider.dart';
+import 'collection_chart.dart';
 
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
@@ -11,14 +13,22 @@ class AnalyticsScreen extends StatefulWidget {
 
 class _AnalyticsScreenState extends State<AnalyticsScreen> {
   String selectedPeriod = 'Week';
-  String selectedView = 'Overview';
-  final List<String> periods = ['Today', 'Week', 'Month', 'Year'];
+  final List<String> periods = ['Week', 'Month', 'Year'];
+  final currencyFormat = NumberFormat.currency(symbol: '₹', decimalDigits: 2);
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AnalyticsProvider>().fetchAnalyticsData(selectedPeriod);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Analytics'),
+        title: const Text('Analytics Dashboard'),
         actions: [
           DropdownButton<String>(
             value: selectedPeriod,
@@ -36,61 +46,223 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 setState(() {
                   selectedPeriod = newValue;
                 });
+                context.read<AnalyticsProvider>().fetchAnalyticsData(newValue);
               }
             },
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Main Content
-          Expanded(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Quick Stats Cards
-                    Row(
+      body: Consumer<AnalyticsProvider>(
+        builder: (context, analytics, child) {
+          if (analytics.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (analytics.error != null) {
+            return Center(child: Text(analytics.error!));
+          }
+
+          return RefreshIndicator(
+            onRefresh: () => analytics.fetchAnalyticsData(selectedPeriod),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                // Determine if we're on a small screen
+                final isSmallScreen = constraints.maxWidth < 600;
+
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Padding(
+                    padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildStatCard(
-                          'Total Collection',
-                          '2,500 L',
-                          Icons.water_drop,
-                          Colors.blue,
-                          '+5.2% from last week',
+                        // Summary Cards with responsive layout
+                        Wrap(
+                          spacing: isSmallScreen ? 12 : 16,
+                          runSpacing: isSmallScreen ? 12 : 16,
+                          children: [
+                            SizedBox(
+                              width: isSmallScreen
+                                  ? constraints.maxWidth
+                                  : (constraints.maxWidth - 32) / 2,
+                              child: _buildStatCard(
+                                'Total Collection',
+                                '${analytics.totalCollection.toStringAsFixed(1)} L',
+                                Icons.water_drop,
+                                Colors.blue,
+                                _getGrowthRate(analytics, 'collection'),
+                              ),
+                            ),
+                            SizedBox(
+                              width: isSmallScreen
+                                  ? constraints.maxWidth
+                                  : (constraints.maxWidth - 32) / 2,
+                              child: _buildStatCard(
+                                'Total Earnings',
+                                currencyFormat.format(analytics.totalEarnings),
+                                Icons.currency_rupee,
+                                Colors.green,
+                                _getGrowthRate(analytics, 'earnings'),
+                              ),
+                            ),
+                          ],
                         ),
-                        _buildStatCard(
-                          'Toatal erning',
-                          '150',
-                          Icons.people,
-                          Colors.green,
-                          '2 new this week',
-                        ),
+                        SizedBox(height: isSmallScreen ? 16 : 24),
+
+                        // Milk Type Distribution Card
+                        _buildMilkTypeCard(analytics, constraints),
+                        SizedBox(height: isSmallScreen ? 16 : 24),
                       ],
                     ),
+                  ),
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
 
-                    const SizedBox(height: 24),
+  String _getGrowthRate(AnalyticsProvider analytics, String type) {
+    double growthRate = type == 'collection'
+        ? analytics.getCollectionGrowth()
+        : analytics.getEarningsGrowth();
 
-                    // Collection Trend Chart
-                    _buildChartCard(
-                      'Collection Trend',
-                      'Last 7 Days',
-                      _buildLineChart(),
-                    ),
+    String indicator = growthRate >= 0 ? '↑' : '↓';
 
-                    const SizedBox(height: 24),
+    return '${growthRate.abs().toStringAsFixed(1)}% $indicator from last ${selectedPeriod.toLowerCase()}';
+  }
 
-                    // Quality Metrics
-                    _buildQualityMetricsCard(),
-                  ],
-                ),
+  Widget _buildMilkTypeCard(
+      AnalyticsProvider analytics, BoxConstraints constraints) {
+    final isSmallScreen = constraints.maxWidth < 600;
+    final padding = isSmallScreen ? 12.0 : 16.0;
+
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: EdgeInsets.all(padding),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Milk Type Distribution',
+              style: TextStyle(
+                fontSize: isSmallScreen ? 16 : 18,
+                fontWeight: FontWeight.bold,
               ),
             ),
-          ),
-        ],
+            SizedBox(height: isSmallScreen ? 16 : 20),
+
+            // Responsive layout for milk progress bars
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final useColumn = constraints.maxWidth < 500;
+
+                if (useColumn) {
+                  return Column(
+                    children: [
+                      _buildMilkProgress(
+                        'Cow Milk',
+                        analytics.getCowMilkPercentage(),
+                        analytics.getCowMilkLiters(),
+                        Colors.blue,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildMilkProgress(
+                        'Buffalo Milk',
+                        analytics.getBuffaloMilkPercentage(),
+                        analytics.getBuffaloMilkLiters(),
+                        Colors.amber,
+                      ),
+                    ],
+                  );
+                } else {
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: _buildMilkProgress(
+                          'Cow Milk',
+                          analytics.getCowMilkPercentage(),
+                          analytics.getCowMilkLiters(),
+                          Colors.blue,
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      Expanded(
+                        child: _buildMilkProgress(
+                          'Buffalo Milk',
+                          analytics.getBuffaloMilkPercentage(),
+                          analytics.getBuffaloMilkLiters(),
+                          Colors.amber,
+                        ),
+                      ),
+                    ],
+                  );
+                }
+              },
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildMilkProgress(
+    String title,
+    double percentage,
+    double liters,
+    Color color,
+  ) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isSmallWidth = constraints.maxWidth < 300;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: isSmallWidth ? 14 : 16,
+                  ),
+                ),
+                Text(
+                  '${liters.toStringAsFixed(1)} L',
+                  style: TextStyle(
+                    fontSize: isSmallWidth ? 14 : 16,
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: LinearProgressIndicator(
+                value: percentage / 100,
+                backgroundColor: color.withOpacity(0.2),
+                valueColor: AlwaysStoppedAnimation<Color>(color),
+                minHeight: isSmallWidth ? 8 : 10,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '${percentage.toStringAsFixed(1)}%',
+              style: TextStyle(
+                fontSize: isSmallWidth ? 12 : 14,
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -101,202 +273,52 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     Color color,
     String subtitle,
   ) {
-    return Expanded(
-      child: Card(
-        elevation: 2,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(icon, color: color, size: 24),
-                  const SizedBox(width: 8),
-                  Text(
-                    title,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: color,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildChartCard(String title, String subtitle, Widget chart) {
     return Card(
       elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 200,
-              child: chart,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isSmallWidth = constraints.maxWidth < 300;
 
-  Widget _buildLineChart() {
-    return LineChart(
-      LineChartData(
-        gridData: FlGridData(show: true),
-        titlesData: FlTitlesData(
-          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        ),
-        borderData: FlBorderData(show: true),
-        lineBarsData: [
-          LineChartBarData(
-            spots: [
-              const FlSpot(0, 3),
-              const FlSpot(1, 3.5),
-              const FlSpot(2, 3.2),
-              const FlSpot(3, 4.1),
-              const FlSpot(4, 3.8),
-              const FlSpot(5, 4.2),
-              const FlSpot(6, 4.5),
-            ],
-            isCurved: true,
-            color: Colors.blue,
-            barWidth: 3,
-            dotData: FlDotData(show: true),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQualityMetricsCard() {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Quality Metrics',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildQualityMetric('Fat Content', 3.8, 5.0),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildQualityMetric(String label, double value, double max) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(label),
-            Text('${value.toStringAsFixed(1)}%'),
-          ],
-        ),
-        const SizedBox(height: 8),
-        LinearProgressIndicator(
-          value: value / max,
-          backgroundColor: Colors.grey[200],
-          valueColor: AlwaysStoppedAnimation<Color>(
-            Theme.of(context).primaryColor,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFarmerListItem(
-    String name,
-    String quantity,
-    String rating,
-    Color medalColor,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Icon(Icons.emoji_events, color: medalColor),
-          const SizedBox(width: 16),
-          Expanded(
+          return Padding(
+            padding: EdgeInsets.all(isSmallWidth ? 12 : 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  name,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                Row(
+                  children: [
+                    Icon(icon, color: color, size: isSmallWidth ? 20 : 24),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: isSmallWidth ? 12 : 14,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
+                SizedBox(height: isSmallWidth ? 6 : 8),
                 Text(
-                  'Total Collection: $quantity',
+                  value,
                   style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 12,
+                    fontSize: isSmallWidth ? 20 : 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: isSmallWidth ? 3 : 4),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: isSmallWidth ? 10 : 12,
+                    color: subtitle.contains('-') ? Colors.red : Colors.green,
                   ),
                 ),
               ],
             ),
-          ),
-          Row(
-            children: [
-              Icon(Icons.star, color: Colors.amber[700], size: 16),
-              const SizedBox(width: 4),
-              Text(rating),
-            ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }

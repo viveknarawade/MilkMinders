@@ -1,7 +1,12 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:milk_minder/services/auth_service.dart';
+import 'package:milk_minder/services/dairy_owner_session_data.dart';
 import 'package:milk_minder/view/screens/dairy_owner/home_screen.dart';
 import 'package:milk_minder/view/screens/auth/register_screen.dart';
+import 'package:milk_minder/view/screens/farmer/farmer_home_screen.dart';
 import '../../widget/custom_sizedbox.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -206,11 +211,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: ElevatedButton(
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                              builder: (context) => const HomeScreen(),
-                            ),
-                          );
+                          _login();
                         }
                       },
                       style: ElevatedButton.styleFrom(
@@ -267,6 +268,37 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  void _login() async {
+    if (_formKey.currentState!.validate()) {
+      log(
+        _emailController.text.trim() + " " + _passwordController.text.trim(),
+      );
+      String? role = await AuthService().login(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+
+      if (role == "Farmer") {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const FarmerHomeScreen(),
+          ),
+        );
+      } else if (role == "DairyOwner") {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const HomeScreen(),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text("Invalid credentials or user not found")),
+        );
+      }
+    }
   }
 
   Widget _buildInputLabel(String label) {

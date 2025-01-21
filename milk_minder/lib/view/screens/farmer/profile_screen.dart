@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:milk_minder/services/farmer_session_data.dart';
+import 'package:intl/intl.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -8,31 +11,26 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Sample farmer data - Replace with actual data from your backend
-  final Map<String, String> farmerData = {
-    'name': 'John Doe',
-    'farmerId': 'FRM001',
-    'phone': '+91 9876543210',
-    'email': 'john.doe@example.com',
-    'village': 'Green Valley',
-    'address': '123 Farm Road, Green Valley, State - 123456',
-    'bankAccount': 'XXXX XXXX 1234',
-    'bankName': 'State Bank',
-    'ifsc': 'SBIN0123456',
-    'totalCattle': '5',
-    'memberSince': 'Jan 2023',
-    'lastDelivery': '15 Jan 2024',
-  };
+  final Color primaryColor = const Color(0xFF1E88E5);
+  final Color secondaryColor = const Color(0xFF1976D2);
+
+  @override
+  void initState() {
+    super.initState();
+    // Configure localization for the screen
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       body: CustomScrollView(
         slivers: [
           // Custom App Bar with Profile Header
           SliverAppBar(
             expandedHeight: 300,
             pinned: true,
+            backgroundColor: primaryColor,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: BoxDecoration(
@@ -40,8 +38,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Theme.of(context).primaryColor,
-                      Theme.of(context).primaryColor.withOpacity(0.8),
+                      secondaryColor,
+                      primaryColor,
                     ],
                   ),
                 ),
@@ -59,14 +57,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 color: Colors.white,
                                 width: 4,
                               ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 10,
+                                  spreadRadius: 2,
+                                ),
+                              ],
                             ),
                             child: CircleAvatar(
                               radius: 60,
-                              backgroundColor: Colors.grey[300],
-                              child: const CircleAvatar(
+                              backgroundColor: Colors.white,
+                              child: CircleAvatar(
                                 radius: 58,
-                                backgroundImage:
-                                    AssetImage('assets/default_profile.png'),
+                                backgroundImage: NetworkImage(
+                                  FarmerSessionData.profilePic ?? '',
+                                ),
+                                backgroundColor: Colors.grey[300],
                               ),
                             ),
                           ),
@@ -88,25 +95,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               onPressed: () {
                                 // TODO: Implement image picking functionality
                               },
-                              color: Theme.of(context).primaryColor,
+                              color: primaryColor,
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        farmerData['name'] ?? '',
+                        FarmerSessionData.Name ?? '',
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
                       ),
+                      const SizedBox(height: 4),
                       Text(
-                        'Farmer ID: ${farmerData['farmerId']}',
+                        'farmer_id : ${FarmerSessionData.fid}',
                         style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 16,
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
@@ -128,6 +137,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           SliverToBoxAdapter(
             child: Column(
               children: [
+                const SizedBox(height: 16),
                 // Contact Information
                 _buildSection(
                   'Contact Information',
@@ -135,12 +145,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildInfoTile(
                       icon: Icons.phone,
                       title: 'Phone Number',
-                      value: farmerData['phone'] ?? '',
+                      value: FarmerSessionData.number ?? '',
                     ),
                     _buildInfoTile(
                       icon: Icons.email,
                       title: 'Email',
-                      value: farmerData['email'] ?? '',
+                      value: FarmerSessionData.email ?? '',
                     ),
                   ],
                 ),
@@ -150,19 +160,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   'Address Information',
                   [
                     _buildInfoTile(
-                      icon: Icons.location_on,
-                      title: 'Village',
-                      value: farmerData['village'] ?? '',
-                    ),
-                    _buildInfoTile(
                       icon: Icons.home,
                       title: 'Address',
-                      value: farmerData['address'] ?? '',
+                      value: FarmerSessionData.address ?? '',
                     ),
                   ],
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
               ],
             ),
           ),
@@ -174,17 +179,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildSection(String title, List<Widget> children) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              children: [
+                const SizedBox(width: 2),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: secondaryColor,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             ...children,
@@ -207,13 +222,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+              color: primaryColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               icon,
               size: 24,
-              color: Theme.of(context).primaryColor,
+              color: primaryColor,
             ),
           ),
           const SizedBox(width: 16),
@@ -226,13 +241,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   style: TextStyle(
                     color: Colors.grey[600],
                     fontSize: 14,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
+                    color: Colors.grey[800],
                   ),
                 ),
               ],

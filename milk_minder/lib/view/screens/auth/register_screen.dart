@@ -1,4 +1,10 @@
+import 'dart:developer';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+
 import 'package:flutter/material.dart';
+import 'package:milk_minder/services/auth_service.dart';
+import 'package:milk_minder/services/dairy_owner_session_data.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -11,9 +17,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   String _userType = 'Farmer';
   bool _isPasswordVisible = false;
+  File? _profileImage;
+  final _picker = ImagePicker();
 
   // Form fields
   final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _addressController = TextEditingController();
@@ -94,6 +103,63 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  Future<void> _pickImage() async {
+    final XFile? pickedFile =
+        await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _profileImage = File(pickedFile.path);
+      });
+    }
+  }
+
+  Widget _buildProfileImagePicker() {
+    return Center(
+      child: Stack(
+        children: [
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              shape: BoxShape.circle,
+              border: Border.all(color: primaryColor, width: 2),
+              image: _profileImage != null
+                  ? DecorationImage(
+                      image: FileImage(_profileImage!),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            child: _profileImage == null
+                ? Icon(
+                    Icons.person,
+                    size: 60,
+                    color: Colors.grey[400],
+                  )
+                : null,
+          ),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                color: primaryColor,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+              child: IconButton(
+                icon:
+                    const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                onPressed: _pickImage,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -122,6 +188,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         fontWeight: FontWeight.bold,
                         color: primaryColor,
                         height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    // Profile Image Picker
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: primaryColor.withOpacity(0.1),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          _buildProfileImagePicker(),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Add Profile Picture',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[600],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -169,6 +265,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             onSelectionChanged: (Set<String> newSelection) {
                               setState(() {
                                 _userType = newSelection.first;
+                                log(_userType);
                               });
                             },
                             style: ButtonStyle(
@@ -220,6 +317,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             icon: Icons.person,
                             validator: (value) => value?.isEmpty ?? true
                                 ? 'Please enter your name'
+                                : null,
+                          ),
+                          _buildInputField(
+                            controller: _emailController,
+                            label: 'Email',
+                            icon: Icons.email,
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) => value?.isEmpty ?? true
+                                ? 'Please enter your email'
                                 : null,
                           ),
                           _buildInputField(
@@ -311,10 +417,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                     // Register Button
                     ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (_formKey.currentState!.validate()) {
-                          // TODO: Implement registration logic
-                          print('Registration form is valid');
+                          // create farmer
+
+                          if (_userType == "Farmer") {
+                            Map<String, dynamic> data = {
+                              'email': _emailController.text.trim(),
+                              'password': _passwordController.text.trim(),
+                              'name': _nameController.text.trim(),
+                              'number': _phoneController.text.trim(),
+                              'profilePic': _profileImage!,
+                              'address': _addressController.text.trim(),
+                              'cattleType': _selectedCattleType,
+                              "role": "farmer",
+                            };
+                            await AuthService().registerFarmer(data);
+                            log('Registration form is valid');
+                          } else {
+                            log("user type ${_userType}");
+                            await AuthService().registerDairyOwner(
+                                _emailController.text.trim(),
+                                _passwordController.text.trim(),
+                                _nameController.text.trim(),
+                                _phoneController.text.trim(),
+                                _addressController.text.trim(),
+                                _dairyNameController.text.trim(),
+                                _profileImage!);
+                            log('Registration form is valid');
+                          }
                         }
                       },
                       style: ElevatedButton.styleFrom(

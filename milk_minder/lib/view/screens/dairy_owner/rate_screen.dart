@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../services/firestore_service.dart';
+
 class RateScreen extends StatefulWidget {
   const RateScreen({super.key});
 
@@ -10,20 +12,15 @@ class RateScreen extends StatefulWidget {
 
 class _RateScreenState extends State<RateScreen> {
   String selectedMilkType = 'Cow';
-  final TextEditingController _baseRateController = TextEditingController();
-
-  @override
-  void dispose() {
-    _baseRateController.dispose();
-    super.dispose();
-  }
+  final TextEditingController _cowRateController = TextEditingController();
+  final TextEditingController _buffaloRateController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        backgroundColor: const Color.fromRGBO(124, 180, 70, 1),
+        backgroundColor: const Color(0xFF40A98D),
         elevation: 0,
         title: Text(
           'Set Milk Rates',
@@ -47,7 +44,7 @@ class _RateScreenState extends State<RateScreen> {
             Container(
               padding: const EdgeInsets.symmetric(vertical: 16),
               decoration: const BoxDecoration(
-                color: Color.fromRGBO(124, 180, 70, 1),
+                color: const Color(0xFF40A98D),
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(30),
                   bottomRight: Radius.circular(30),
@@ -144,7 +141,6 @@ class _RateScreenState extends State<RateScreen> {
           children: [
             _buildRateField(
               'Base Rate (₹/L)',
-              _baseRateController,
               'Enter base rate per liter',
             ),
           ],
@@ -155,7 +151,6 @@ class _RateScreenState extends State<RateScreen> {
 
   Widget _buildRateField(
     String label,
-    TextEditingController controller,
     String hint,
   ) {
     return Column(
@@ -171,7 +166,9 @@ class _RateScreenState extends State<RateScreen> {
         ),
         const SizedBox(height: 8),
         TextFormField(
-          controller: controller,
+          controller: (selectedMilkType == "Cow")
+              ? _cowRateController
+              : _buffaloRateController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(
             hintText: hint,
@@ -186,8 +183,9 @@ class _RateScreenState extends State<RateScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide:
-                  const BorderSide(color: Color.fromRGBO(124, 180, 70, 1)),
+              borderSide: const BorderSide(
+                color: const Color(0xFF40A98D),
+              ),
             ),
             prefixIcon: const Icon(Icons.currency_rupee_rounded),
           ),
@@ -248,7 +246,7 @@ class _RateScreenState extends State<RateScreen> {
           Text(
             '₹$price',
             style: GoogleFonts.poppins(
-              color: const Color.fromRGBO(124, 180, 70, 1),
+              color: const Color(0xFF40A98D),
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -264,18 +262,24 @@ class _RateScreenState extends State<RateScreen> {
       child: ElevatedButton(
         onPressed: () {
           // Save rate logic
+          Map<String, dynamic> rate = {
+            "Cow": _cowRateController.text.trim(),
+            "Buffalo": _buffaloRateController.text.trim(),
+          };
+          FirestoreService().setRates(rate);
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
                 'Rates updated successfully!',
                 style: GoogleFonts.poppins(),
               ),
-              backgroundColor: const Color.fromRGBO(124, 180, 70, 1),
+              backgroundColor: const Color(0xFF40A98D),
             ),
           );
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color.fromRGBO(124, 180, 70, 1),
+          backgroundColor: const Color(0xFF40A98D),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
