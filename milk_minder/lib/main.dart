@@ -22,10 +22,18 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => FarmerListProvider()),
-        ChangeNotifierProvider(create: (_) => MilkCollectionProvider()),
-        ChangeNotifierProvider(create: (_) => AnalyticsProvider()),
-        ChangeNotifierProvider(create: (_) => FarmerMilkCollectionProvider()),
+        ChangeNotifierProvider(
+          create: (_) => FarmerListProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => MilkCollectionProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => AnalyticsProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => FarmerMilkCollectionProvider(),
+        ),
       ],
       child: const MainApp(),
     ),

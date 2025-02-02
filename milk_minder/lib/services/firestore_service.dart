@@ -158,69 +158,68 @@ class FirestoreService {
     }
   }
 
+  Future<void> addMilkCollectedData(Map<String, dynamic> milkData) async {
+    try {
+      // Get the farmer ID by mobile number
+      String? farmerId = await getFarmerIdByMobileNumber(milkData["number"]);
+      log("Farmer ID: $farmerId");
 
-Future<void> addMilkCollectedData(Map<String, dynamic> milkData) async {
-  try {
-    // Get the farmer ID by mobile number
-    String? farmerId = await getFarmerIdByMobileNumber(milkData["number"]);
-    log("Farmer ID: $farmerId");
+      if (farmerId == null) {
+        throw Exception("Farmer ID not found");
+      }
 
-    if (farmerId == null) {
-      throw Exception("Farmer ID not found");
+      // Create the data structure
+      String timeStamp = milkData["timeStamp"];
+      Map<String, dynamic> data = {
+        "deliveryTime": milkData["deliveryTime"],
+        "farmerId": farmerId,
+        "farmerName": milkData["farmerName"],
+        "fat": milkData["fat"],
+        "liters": milkData["liters"],
+        "milkType": milkData["milkType"],
+        "number": milkData["number"],
+        "rate": milkData["rate"],
+        "total": milkData["total"],
+        "timeStamp": timeStamp,
+      };
+
+      // Create the timestamp-keyed entry
+      Map<String, dynamic> newEntry = {timeStamp: data};
+
+      // Reference to the milk collection document
+      DocumentReference milkCollectionRef = firestore
+          .collection("MilkCollected")
+          .doc(DairyOwnerSessionData.id)
+          .collection("milkData")
+          .doc(farmerId);
+
+      // Fetch existing entries
+      DocumentSnapshot snapshot = await milkCollectionRef.get();
+      List<dynamic> milkEntries = [];
+
+      if (snapshot.exists && snapshot.data() != null) {
+        Map<String, dynamic> existingData =
+            snapshot.data() as Map<String, dynamic>;
+        milkEntries = List<dynamic>.from(existingData["milkEntries"] ?? []);
+      }
+
+      // Append the new entry to the list
+      milkEntries.add(newEntry);
+
+      // Update Firestore with the updated list
+      await milkCollectionRef.set(
+        {
+          "milkEntries": milkEntries,
+        },
+        SetOptions(merge: true),
+      );
+
+      log("Milk collection data added successfully");
+    } catch (e) {
+      log("Error adding milk collection data: $e");
+      rethrow;
     }
-
-    // Create the data structure
-    String timeStamp = milkData["timeStamp"];
-    Map<String, dynamic> data = {
-      "deliveryTime": milkData["deliveryTime"],
-      "farmerId": farmerId,
-      "farmerName": milkData["farmerName"],
-      "fat": milkData["fat"],
-      "liters": milkData["liters"],
-      "milkType": milkData["milkType"],
-      "number": milkData["number"],
-      "rate": milkData["rate"],
-      "total": milkData["total"],
-      "timeStamp": timeStamp,
-    };
-
-    // Create the timestamp-keyed entry
-    Map<String, dynamic> newEntry = {timeStamp: data};
-
-    // Reference to the milk collection document
-    DocumentReference milkCollectionRef = firestore
-        .collection("MilkCollected")
-        .doc(DairyOwnerSessionData.id)
-        .collection("milkData")
-        .doc(farmerId);
-
-    // Fetch existing entries
-    DocumentSnapshot snapshot = await milkCollectionRef.get();
-    List<dynamic> milkEntries = [];
-
-    if (snapshot.exists && snapshot.data() != null) {
-      Map<String, dynamic> existingData = snapshot.data() as Map<String, dynamic>;
-      milkEntries = List<dynamic>.from(existingData["milkEntries"] ?? []);
-    }
-
-    // Append the new entry to the list
-    milkEntries.add(newEntry);
-
-    // Update Firestore with the updated list
-    await milkCollectionRef.set(
-      {
-        "milkEntries": milkEntries,
-      },
-      SetOptions(merge: true),
-    );
-
-    log("Milk collection data added successfully");
-  } catch (e) {
-    log("Error adding milk collection data: $e");
-    rethrow;
   }
-}
-
 
 // toget rate
   getRate() async {
@@ -256,6 +255,22 @@ Future<void> addMilkCollectedData(Map<String, dynamic> milkData) async {
         .doc(ownerID)
         .collection("milkData")
         .doc(FarmerSessionData.fid)
+        .get();
+    farmerMilkCollection.add(snapshot.data() as Map<String, dynamic>);
+    log("in  fetch func firestore service = $farmerMilkCollection");
+    return farmerMilkCollection;
+  }
+
+// owner side
+  getFarmerMilkData(String id) async {
+    List<Map<String, dynamic>> farmerMilkCollection = [];
+
+    
+    DocumentSnapshot snapshot = await firestore
+        .collection("MilkCollected")
+        .doc(DairyOwnerSessionData.id)
+        .collection("milkData")
+        .doc(id)
         .get();
     farmerMilkCollection.add(snapshot.data() as Map<String, dynamic>);
     log("in  fetch func firestore service = $farmerMilkCollection");
