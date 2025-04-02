@@ -1,6 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
-import 'package:http/http.dart' as http;
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:milk_minder/services/cloudinary_service.dart';
@@ -102,6 +102,7 @@ class AuthService {
             farmerDoc.data() as Map<String, dynamic>;
 
         // Extract fields from the farmerData map
+        // ignore: non_constant_identifier_names
         String Name = farmerData['name'] ?? '';
         String cattleType =
             farmerData['cattleType'] ?? ''; // assuming it's available

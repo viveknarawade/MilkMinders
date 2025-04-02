@@ -1,7 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:milk_minder/services/farmer_session_data.dart';
-import 'package:intl/intl.dart';
+import 'package:milk_minder/view/screens/auth/login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -77,27 +78,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.2),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: IconButton(
-                              icon: const Icon(Icons.camera_alt),
-                              onPressed: () {
-                                // TODO: Implement image picking functionality
-                              },
-                              color: primaryColor,
-                            ),
-                          ),
+                          // Container(
+                          //   padding: const EdgeInsets.all(4),
+                          //   decoration: BoxDecoration(
+                          //     color: Colors.white,
+                          //     shape: BoxShape.circle,
+                          //     boxShadow: [
+                          //       BoxShadow(
+                          //         color: Colors.black.withOpacity(0.2),
+                          //         blurRadius: 8,
+                          //         offset: const Offset(0, 2),
+                          //       ),
+                          //     ],
+                          //   ),
+                          //   child: IconButton(
+                          //     icon: const Icon(Icons.camera_alt),
+                          //     onPressed: () {
+                          //       // TODO: Implement image picking functionality
+                          //     },
+                          //     color: primaryColor,
+                          //   ),
+                          // ),
                         ],
                       ),
                       const SizedBox(height: 16),
@@ -123,14 +124,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
             ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.edit, color: Colors.white),
-                onPressed: () {
-                  // TODO: Implement edit profile functionality
-                },
-              ),
-            ],
+            // actions: [
+            //   IconButton(
+            //     icon: const Icon(Icons.edit, color: Colors.white),
+            //     onPressed: () {
+            //       // TODO: Implement edit profile functionality
+            //     },
+            //   ),
+            // ],
           ),
 
           // Profile Content
@@ -168,6 +169,77 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
 
                 const SizedBox(height: 24),
+                Padding(
+                  padding:
+                      const EdgeInsets.only(bottom: 20.0, left: 20, right: 20),
+                  child: Card(
+                    elevation: 3,
+                    color: Colors.red.shade50,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: InkWell(
+                      onTap: () async {
+                        // Show confirmation dialog
+                        bool confirm = await showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: Text('Confirm Logout'),
+                                content:
+                                    Text('Are you sure you want to logout?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(false),
+                                    child: Text('Cancel'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(true),
+                                    child: Text('Logout',
+                                        style: TextStyle(color: Colors.red)),
+                                  ),
+                                ],
+                              ),
+                            ) ??
+                            false;
+
+                        if (confirm) {
+                          await FirebaseAuth.instance.signOut();
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return LoginScreen();
+                              },
+                            ),
+                          );
+                        }
+                      },
+                      child: Padding(
+                        padding:
+                            EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.logout_rounded,
+                              color: Colors.red,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              'Logout',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.red,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                )
               ],
             ),
           ),

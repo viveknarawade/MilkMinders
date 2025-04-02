@@ -3,11 +3,11 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:milk_minder/services/auth_service.dart';
-import 'package:milk_minder/services/dairy_owner_session_data.dart';
+
 import 'package:milk_minder/view/screens/dairy_owner/home_screen.dart';
 import 'package:milk_minder/view/screens/auth/register_screen.dart';
 import 'package:milk_minder/view/screens/farmer/farmer_home_screen.dart';
-import '../../widget/custom_sizedbox.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -159,50 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Remember Me and Forgot Password
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: Checkbox(
-                              value: _rememberMe,
-                              onChanged: (value) {
-                                setState(() {
-                                  _rememberMe = value!;
-                                });
-                              },
-                              activeColor:
-                                  const Color.fromRGBO(124, 180, 70, 1),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Remember me',
-                            style: GoogleFonts.poppins(
-                              color: Colors.grey[700],
-                            ),
-                          ),
-                        ],
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          // Add forgot password functionality
-                        },
-                        child: Text(
-                          'Forgot Password?',
-                          style: GoogleFonts.poppins(
-                            color: const Color.fromRGBO(124, 180, 70, 1),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
+                 
 
                   // Login Button
                   SizedBox(

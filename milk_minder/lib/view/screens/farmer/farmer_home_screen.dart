@@ -5,7 +5,6 @@ import 'package:milk_minder/services/farmer_session_data.dart';
 import 'package:milk_minder/services/firestore_service.dart';
 import 'package:milk_minder/view/screens/farmer/milk_collection_screen.dart';
 import 'package:milk_minder/view/screens/farmer/profile_screen.dart';
-import 'package:milk_minder/view/screens/farmer/settings_screen.dart';
 
 class FarmerHomeScreen extends StatefulWidget {
   const FarmerHomeScreen({super.key});
@@ -109,7 +108,7 @@ class _FarmerHomeScreenState extends State<FarmerHomeScreen> {
                               ],
                             ),
                           ),
-                          _buildEditButton(),
+                          // _buildEditButton(),
                         ],
                       ),
                     ],

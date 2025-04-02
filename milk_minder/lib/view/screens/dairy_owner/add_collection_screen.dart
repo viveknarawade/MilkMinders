@@ -599,25 +599,45 @@ class _AddCollectionScreenState extends State<AddCollectionScreen> {
   }
 
   void saveMilkCollection() async {
-    String timeStamp = formatDate(selectedDate!);
-    log("time stamp ${timeStamp}");
+    try {
+      String timeStamp = formatDate(selectedDate!);
+      log("time stamp ${timeStamp}");
 
-    Map<String, dynamic> data = {
-      "timeStamp": timeStamp,
-      "deliveryTime": (isEveningSelected) ? "Evening" : "Morning",
-      "farmerName": selectedFarmerName,
-      "number": selectedFarmerNumber,
-      "liters": literController.text.trim(),
-      "fat": fatController.text.trim(),
-      "total": totalRate.toStringAsFixed(2),
-      'rate': "50",
-      'milkType': (isCowSelected) ? "Cow" : "Buffalo",
-    };
+      Map<String, dynamic> data = {
+        "timeStamp": timeStamp,
+        "deliveryTime": (isEveningSelected) ? "Evening" : "Morning",
+        "farmerName": selectedFarmerName,
+        "number": selectedFarmerNumber,
+        "liters": literController.text.trim(),
+        "fat": fatController.text.trim(),
+        "total": totalRate.toStringAsFixed(2),
+        'rate': "50",
+        'milkType': (isCowSelected) ? "Cow" : "Buffalo",
+      };
 
-    await FirestoreService().addMilkCollectedData(data);
-    context.read<MilkCollectionProvider>().fetchMilkCollectionData();
-    reset();
-    setState(() {});
+      await FirestoreService().addMilkCollectedData(data);
+      context.read<MilkCollectionProvider>().fetchMilkCollectionData();
+      reset();
+      setState(() {});
+
+      // Show success SnackBar message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Milk collection data added successfully!'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      // Show error SnackBar if data addition fails
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to add milk collection data: ${e.toString()}'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   void reset() {
@@ -627,7 +647,7 @@ class _AddCollectionScreenState extends State<AddCollectionScreen> {
     isBuffaloSelected = false;
     literController.clear();
     fatController.clear();
-    totalRate=0;
+    totalRate = 0;
   }
 
   Widget _buildBottomButtons() {

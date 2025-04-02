@@ -30,7 +30,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   String _selectedCattleType = 'Cow';
   String _selectedCollectionTime = 'Morning';
-
+  bool _isLoading = false;
   // Define theme color
   static const primaryColor = Color.fromRGBO(124, 180, 70, 1);
   static const primaryLightColor = Color.fromRGBO(124, 180, 70, 0.1);
@@ -419,32 +419,77 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ElevatedButton(
                       onPressed: () async {
                         if (_formKey.currentState!.validate()) {
-                          // create farmer
+                          try {
+                            // Show loading indicator
+                            setState(() {
+                              _isLoading = true;
+                            });
 
-                          if (_userType == "Farmer") {
-                            Map<String, dynamic> data = {
-                              'email': _emailController.text.trim(),
-                              'password': _passwordController.text.trim(),
-                              'name': _nameController.text.trim(),
-                              'number': _phoneController.text.trim(),
-                              'profilePic': _profileImage!,
-                              'address': _addressController.text.trim(),
-                              'cattleType': _selectedCattleType,
-                              "role": "farmer",
-                            };
-                            await AuthService().registerFarmer(data);
-                            log('Registration form is valid');
-                          } else {
-                            log("user type ${_userType}");
-                            await AuthService().registerDairyOwner(
-                                _emailController.text.trim(),
-                                _passwordController.text.trim(),
-                                _nameController.text.trim(),
-                                _phoneController.text.trim(),
-                                _addressController.text.trim(),
-                                _dairyNameController.text.trim(),
-                                _profileImage!);
-                            log('Registration form is valid');
+                            // create farmer
+                            if (_userType == "Farmer") {
+                              Map<String, dynamic> data = {
+                                'email': _emailController.text.trim(),
+                                'password': _passwordController.text.trim(),
+                                'name': _nameController.text.trim(),
+                                'number': _phoneController.text.trim(),
+                                'profilePic': _profileImage!,
+                                'address': _addressController.text.trim(),
+                                'cattleType': _selectedCattleType,
+                                "role": "farmer",
+                              };
+                              await AuthService().registerFarmer(data);
+                              log('Registration form is valid');
+
+                              // Show success SnackBar after farmer registration
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content:
+                                      Text('Farmer registered successfully!'),
+                                  backgroundColor: Colors.green,
+                                  duration: Duration(seconds: 3),
+                                ),
+                              );
+                            } else {
+                              log("user type ${_userType}");
+                              await AuthService().registerDairyOwner(
+                                  _emailController.text.trim(),
+                                  _passwordController.text.trim(),
+                                  _nameController.text.trim(),
+                                  _phoneController.text.trim(),
+                                  _addressController.text.trim(),
+                                  _dairyNameController.text.trim(),
+                                  _profileImage!);
+                              log('Registration form is valid');
+
+                              // Show success SnackBar after dairy owner registration
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                      'Dairy owner registered successfully!'),
+                                  backgroundColor: Colors.green,
+                                  duration: Duration(seconds: 3),
+                                ),
+                              );
+                            }
+
+                            // Navigate to home screen after short delay
+                            Future.delayed(Duration(seconds: 2), () {
+                              Navigator.pushReplacementNamed(context, '/home');
+                            });
+                          } catch (e) {
+                            // Show error SnackBar
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                    'Registration failed: ${e.toString()}'),
+                                backgroundColor: Colors.red,
+                                duration: Duration(seconds: 3),
+                              ),
+                            );
+                          } finally {
+                            setState(() {
+                              _isLoading = false;
+                            });
                           }
                         }
                       },
@@ -456,14 +501,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         elevation: 4,
                       ),
-                      child: const Text(
-                        'Register',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
+                      child: _isLoading
+                          ? CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                              'Register',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
                     ),
                   ],
                 ),

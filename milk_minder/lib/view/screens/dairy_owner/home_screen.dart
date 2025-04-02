@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:milk_minder/services/dairy_owner_session_data.dart';
-import 'package:milk_minder/services/firestore_service.dart';
+
 import 'package:milk_minder/view/screens/dairy_owner/analytics_screen.dart';
 import 'package:milk_minder/view/screens/dairy_owner/collection_screen.dart';
 import 'package:milk_minder/view/screens/dairy_owner/farmer_screen.dart';

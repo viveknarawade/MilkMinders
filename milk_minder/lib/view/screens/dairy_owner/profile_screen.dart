@@ -1,6 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:milk_minder/services/dairy_owner_session_data.dart';
+import 'package:milk_minder/view/screens/auth/login_screen.dart';
 
 class DairyOwnerProfilePage extends StatelessWidget {
   final Color primaryColor =
@@ -72,25 +74,25 @@ class DairyOwnerProfilePage extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              Material(
-                                elevation: 8,
-                                borderRadius: BorderRadius.circular(30),
-                                color: Colors.white,
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(30),
-                                  onTap: () {
-                                    // TODO: Implement image picking
-                                  },
-                                  child: Container(
-                                    padding: EdgeInsets.all(8),
-                                    child: Icon(
-                                      Icons.camera_alt_rounded,
-                                      color: primaryColor,
-                                      size: 20,
-                                    ),
-                                  ),
-                                ),
-                              ),
+                              // Material(
+                              //   elevation: 8,
+                              //   borderRadius: BorderRadius.circular(30),
+                              //   color: Colors.white,
+                              //   child: InkWell(
+                              //     borderRadius: BorderRadius.circular(30),
+                              //     onTap: () {
+                              //       // TODO: Implement image picking
+                              //     },
+                              //     child: Container(
+                              //       padding: EdgeInsets.all(8),
+                              //       child: Icon(
+                              //         Icons.camera_alt_rounded,
+                              //         color: primaryColor,
+                              //         size: 20,
+                              //       ),
+                              //     ),
+                              //   ),
+                              // ),
                             ],
                           ),
                         ),
@@ -135,33 +137,33 @@ class DairyOwnerProfilePage extends StatelessWidget {
                 ],
               ),
             ),
-            actions: [
-              // Modern Edit Button
-              Padding(
-                padding: EdgeInsets.only(right: 8),
-                child: Material(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () {
-                      // TODO: Implement edit profile
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(8),
-                      child: Icon(Icons.edit_rounded, color: Colors.white),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            // actions: [
+            //   // Modern Edit Button
+            //   Padding(
+            //     padding: EdgeInsets.only(right: 8),
+            //     child: Material(
+            //       color: Colors.white.withOpacity(0.2),
+            //       borderRadius: BorderRadius.circular(12),
+            //       child: InkWell(
+            //         borderRadius: BorderRadius.circular(12),
+            //         onTap: () {
+            //           // TODO: Implement edit profile
+            //         },
+            //         child: Container(
+            //           padding: EdgeInsets.all(8),
+            //           child: Icon(Icons.edit_rounded, color: Colors.white),
+            //         ),
+            //       ),
+            //     ),
+            //   ),
+            // ],
           ),
 
           // Contact Information
           SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              child: _buildContactInfo(),
+              child: _buildContactInfo(context),
             ),
           ),
 
@@ -171,7 +173,7 @@ class DairyOwnerProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildContactInfo() {
+  Widget _buildContactInfo(BuildContext context) {
     return Card(
       color: Colors.white,
       elevation: 2,
@@ -211,6 +213,72 @@ class DairyOwnerProfilePage extends StatelessWidget {
               color: Colors.red,
               isLast: true,
             ),
+            SizedBox(
+              height: 20,
+            ),
+            Card(
+              elevation: 3,
+              color: Colors.red.shade50,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: InkWell(
+                onTap: () async {
+                  // Show confirmation dialog
+                  bool confirm = await showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text('Confirm Logout'),
+                          content: Text('Are you sure you want to logout?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(false),
+                              child: Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(true),
+                              child: Text('Logout',
+                                  style: TextStyle(color: Colors.red)),
+                            ),
+                          ],
+                        ),
+                      ) ??
+                      false;
+
+                  if (confirm) {
+                    await FirebaseAuth.instance.signOut();
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return LoginScreen();
+                        },
+                      ),
+                    );
+                  }
+                },
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.logout_rounded,
+                        color: Colors.red,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Logout',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )
           ],
         ),
       ),

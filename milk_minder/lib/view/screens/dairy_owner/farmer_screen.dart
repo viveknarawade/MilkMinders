@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../controller/farmer_list_provider.dart';
-import '../../../controller/farmer_milk_collection_provider.dart';
+
 import 'add_farmer_screen.dart';
 import 'all_farmer_report_screen.dart';
 import 'farmer_bill_screen.dart';
@@ -151,14 +151,11 @@ class _FarmerScreenState extends State<FarmerScreen> {
         onTap: () {
           // Handle farmer card tap
           log(farmer.toString());
-    
 
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) {
-                return FarmerBillScreen(
-                 farmer :farmer
-                );
+                return FarmerBillScreen(farmer: farmer);
               },
             ),
           );

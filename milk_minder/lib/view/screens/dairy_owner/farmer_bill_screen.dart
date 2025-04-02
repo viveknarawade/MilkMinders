@@ -481,7 +481,7 @@ class _FarmerBillScreenState extends State<FarmerBillScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "Farmer Name: ${widget.farmer["name"]}",
+                  "Name: ${widget.farmer["name"]}",
                   style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
                 ),
                 Text(

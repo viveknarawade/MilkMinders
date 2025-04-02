@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:milk_minder/controller/analytics_provider.dart';
@@ -19,6 +17,7 @@ void main() async {
         messagingSenderId: "219550559450",
         projectId: "milk-collection-app-d9cd6"),
   );
+  
   runApp(
     MultiProvider(
       providers: [
